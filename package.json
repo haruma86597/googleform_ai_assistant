@@ -1,8 +1,8 @@
 {
-  "name": "wxt-starter",
-  "description": "manifest.json description",
+  "name": "googleform-ai-assistant",
+  "description": "Googleフォームの回答をGemini AIで解析し、正解をハイライト表示するChrome拡張機能",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -17,5 +17,8 @@
   "devDependencies": {
     "typescript": "^5.9.3",
     "wxt": "^0.20.26"
+  },
+  "dependencies": {
+    "@google/genai": "^2.8.0"
   }
 }
