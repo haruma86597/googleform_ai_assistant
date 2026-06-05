@@ -171,6 +171,32 @@ body {
   box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
 }
 
+.input-wrapper select {
+  width: 100%;
+  padding: 12px 36px 12px 14px;
+  background: var(--color-bg-input) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239aa0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center;
+  background-size: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: all var(--transition);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.input-wrapper select:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+}
+
+.input-wrapper select option {
+  background: var(--color-bg-card);
+  color: var(--color-text);
+}
+
 .btn-icon {
   position: absolute;
   right: 8px;

@@ -66,6 +66,28 @@
           </div>
         </div>
 
+        <div class="input-group">
+          <label for="model-select">AIモデル</label>
+          <div class="input-wrapper">
+            <select id="model-select">
+              <option value="gemini-3.5-flash">gemini-3.5-flash (推奨/標準)</option>
+              <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (軽量版)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="thinking-level-select">思考レベル (Thinking Level)</label>
+          <div class="input-wrapper">
+            <select id="thinking-level-select">
+              <option value="OFF">OFF (思考オフ — 高速応答)</option>
+              <option value="LOW">LOW (低)</option>
+              <option value="MEDIUM">MEDIUM (中 — 推奨)</option>
+              <option value="HIGH">HIGH (高 — 複雑な推論)</option>
+            </select>
+          </div>
+        </div>
+
         <div class="button-group">
           <button type="button" id="btn-save" class="btn-primary">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"

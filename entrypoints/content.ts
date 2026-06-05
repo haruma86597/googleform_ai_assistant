@@ -6,7 +6,7 @@
 
 import { scrapeFormQuestions, type FormQuestion } from '@/utils/scraper';
 import { fetchAnswers, type AnswerResult, type QuestionInput } from '@/utils/gemini';
-import { getApiKey } from '@/utils/storage';
+import { getApiKey, getModel, getThinkingLevel } from '@/utils/storage';
 
 // ─── ハイライト用CSSクラス名 ───
 const HIGHLIGHT_CLASS = 'gform-ai-highlight';
@@ -20,26 +20,11 @@ function injectStyles(): void {
   style.id = 'gform-ai-styles';
   style.textContent = `
     .${HIGHLIGHT_CLASS} {
-      background-color: rgba(66, 133, 244, 0.15) !important;
       font-weight: bold !important;
-      border-radius: 6px !important;
-      padding: 2px 6px !important;
-      transition: all 0.3s ease !important;
-      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3) !important;
     }
 
     .${PROCESSING_CLASS} {
-      opacity: 0.6;
       pointer-events: none;
-    }
-
-    @keyframes gform-ai-pulse {
-      0%, 100% { box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3); }
-      50% { box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.5); }
-    }
-
-    .${HIGHLIGHT_CLASS} {
-      animation: gform-ai-pulse 2s ease-in-out 3;
     }
   `;
   document.head.appendChild(style);
@@ -63,7 +48,7 @@ function normalizeForComparison(text: string): string {
  * 正解の選択肢をハイライトする
  */
 function highlightAnswers(questions: FormQuestion[], answers: AnswerResult[]): number {
-  let highlightCount = 0;
+  let selectCount = 0;
 
   answers.forEach((answer) => {
     const question = questions[answer.questionIndex];
@@ -96,17 +81,24 @@ function highlightAnswers(questions: FormQuestion[], answers: AnswerResult[]): n
         return choiceText === normalizedCorrect;
       });
 
+      const isChecked = choiceEl.getAttribute('aria-checked') === 'true';
+
       if (isCorrect) {
-        // label要素（docssharedWizToggleLabeledContainer）をハイライト
-        const labelContainer = choiceEl.closest('label') || choiceEl.closest('.nWQGrd') || choiceEl;
-        labelContainer.classList.add(HIGHLIGHT_CLASS);
-        highlightCount++;
+        // 正解の選択肢にチェックが入っていなければクリックして選択する
+        if (!isChecked) {
+          (choiceEl as HTMLElement).click();
+        }
+        selectCount++;
+      } else {
+        // 不正解のチェックボックスにチェックが入っていたらクリックして外す
+        if (isChecked && choiceEl.getAttribute('role') === 'checkbox') {
+          (choiceEl as HTMLElement).click();
+        }
       }
     });
   });
 
-  return highlightCount;
-
+  return selectCount;
 }
 
 /**
@@ -118,8 +110,10 @@ async function runHighlightProcess(): Promise<{
   questionCount: number;
   highlightCount: number;
 }> {
-  // APIキーチェック
+  // 設定の取得
   const apiKey = await getApiKey();
+  const model = await getModel();
+  const thinkingLevel = await getThinkingLevel();
   if (!apiKey) {
     return {
       success: false,
@@ -151,6 +145,7 @@ async function runHighlightProcess(): Promise<{
     questionText: q.questionText,
     choices: q.choices,
     type: q.type,
+    sectionDescription: q.sectionDescription,
   }));
 
   try {
@@ -158,7 +153,7 @@ async function runHighlightProcess(): Promise<{
     document.body.classList.add(PROCESSING_CLASS);
 
     // Gemini API呼び出し
-    const answers = await fetchAnswers(apiKey, apiInputs);
+    const answers = await fetchAnswers(apiKey, apiInputs, model, thinkingLevel);
 
     // ハイライト適用
     const highlightCount = highlightAnswers(questions, answers);
@@ -204,5 +199,25 @@ export default defineContentScript({
         }
       }
     );
+
+    // Ctrl + G ショートカットキーの監視
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      const isCtrlG = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g';
+      if (!isCtrlG) return;
+
+      // 入力中の場合は実行しない
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tagName = activeEl.tagName.toLowerCase();
+        const isEditable = activeEl.getAttribute('contenteditable') === 'true';
+        if (tagName === 'input' || tagName === 'textarea' || isEditable) {
+          return;
+        }
+      }
+
+      e.preventDefault();
+      console.log('[GoogleForm AI Assistant] Ctrl+G ショートカットキーが検出されました');
+      runHighlightProcess();
+    });
   },
 });

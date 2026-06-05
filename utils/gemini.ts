@@ -3,9 +3,9 @@
  * Google GenAI SDK を使用して、質問文と選択肢から正解を問い合わせる
  */
 
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 
-const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
+const DEFAULT_MODEL = 'gemini-3.5-flash';
 
 /**
  * 1つの質問に対するAPI入力
@@ -14,6 +14,7 @@ export interface QuestionInput {
   questionText: string;
   choices: string[];
   type: 'radio' | 'checkbox' | 'unknown';
+  sectionDescription?: string | null;
 }
 
 /**
@@ -33,6 +34,9 @@ function buildPrompt(questions: QuestionInput[]): string {
 
   questions.forEach((q, i) => {
     prompt += `【問題 ${i + 1}】\n`;
+    if (q.sectionDescription) {
+      prompt += `説明: ${q.sectionDescription}\n`;
+    }
     prompt += `質問: ${q.questionText}\n`;
     prompt += `選択肢:\n`;
     q.choices.forEach((c, j) => {
@@ -119,22 +123,34 @@ function fallbackParse(text: string, questions: QuestionInput[]): AnswerResult[]
 export async function fetchAnswers(
   apiKey: string,
   questions: QuestionInput[],
-  model: string = DEFAULT_MODEL
+  model: string = DEFAULT_MODEL,
+  thinkingLevel?: string
 ): Promise<AnswerResult[]> {
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = buildPrompt(questions);
   const systemInstruction = buildSystemInstruction();
 
+  const config: any = {
+    systemInstruction,
+    temperature: 0.1,
+    topP: 0.8,
+    maxOutputTokens: 2048,
+  };
+
+  if (thinkingLevel && thinkingLevel !== 'OFF') {
+    config.thinkingConfig = {
+      thinkingLevel: thinkingLevel as ThinkingLevel,
+    };
+  }
+
   try {
+    console.log(`[Gemini API] 送信開始 (モデル: ${model}, 思考レベル: ${thinkingLevel || 'OFF'})`);
+    console.log(`[Gemini API] プロンプト内容:\n${prompt}`);
+
     const response = await ai.models.generateContent({
       model,
-      config: {
-        systemInstruction,
-        temperature: 0.1,
-        topP: 0.8,
-        maxOutputTokens: 2048,
-      },
+      config,
       contents: [
         {
           role: 'user',
@@ -144,6 +160,7 @@ export async function fetchAnswers(
     });
 
     const responseText = response.text;
+    console.log(`[Gemini API] 受信応答:\n${responseText}`);
     if (!responseText) {
       throw new Error('APIからの応答が空です');
     }

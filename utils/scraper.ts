@@ -6,7 +6,10 @@
  * 
  * 実際のDOM構造（2026年時点）:
  *   div[role="list"]
- *     └ div.Qr7Oae[role="listitem"]          ← 質問ブロック
+ *     ├ div.Qr7Oae.pQK2A[role="listitem"]   ← セクション説明（大問の説明）
+ *     │   └ div.KkG9vf[role="heading"]
+ *     │       └ div.M7eMe                    ← セクションテキスト
+ *     └ div.Qr7Oae[role="listitem"]          ← 質問ブロック（pQK2Aなし）
  *         ├ div[role="heading"] span.M7eMe   ← 質問文テキスト
  *         ├ div[role="radiogroup"]            ← ラジオグループ
  *         │   └ div[role="radio"][data-value] ← 各選択肢
@@ -20,6 +23,12 @@
 const SELECTORS = {
   /** 各質問ブロックのコンテナ（role="list"直下のlistitem） */
   questionContainer: '[role="listitem"]',
+  /** セクション説明を持つlistitem（pQK2Aクラス付き） */
+  sectionContainer: '[role="listitem"].pQK2A',
+  /** セクション説明のheading */
+  sectionHeading: '[role="heading"]',
+  /** セクションテキストを持つ要素 */
+  sectionTextElement: '.M7eMe',
   /** 質問文のheading要素 */
   questionHeading: '[role="heading"]',
   /** 質問文テキストを持つspan */
@@ -50,6 +59,8 @@ export interface FormQuestion {
   type: 'radio' | 'checkbox' | 'unknown';
   /** この質問が属するDOM要素 */
   element: Element;
+  /** セクション説明（大問の説明文）。存在しない場合はnull */
+  sectionDescription: string | null;
 }
 
 /**
@@ -139,13 +150,53 @@ function extractQuestionText(container: Element): string {
 }
 
 /**
+ * コンテナがセクション説明（大問の説明）かどうかを判定する
+ * セクション説明は pQK2A クラスを持ち、選択肢を含まない listitem
+ */
+function isSectionDescription(container: Element): boolean {
+  // pQK2A クラスを持つか
+  if (container.classList.contains('pQK2A')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * セクション説明のテキストを抽出する
+ */
+function extractSectionText(container: Element): string {
+  // M7eMe クラスを持つ要素からテキストを取得
+  const textEl = container.querySelector(SELECTORS.sectionTextElement);
+  if (textEl) {
+    return normalizeText(textEl.textContent || '');
+  }
+  // フォールバック: heading要素のテキスト
+  const heading = container.querySelector(SELECTORS.sectionHeading);
+  if (heading) {
+    return normalizeText(heading.textContent || '');
+  }
+  return '';
+}
+
+/**
  * 現在のページからすべての質問と選択肢を抽出する
+ * セクション説明がある場合は、後続の質問にセクション説明を紐付ける
  */
 export function scrapeFormQuestions(): FormQuestion[] {
   const containers = document.querySelectorAll(SELECTORS.questionContainer);
   const questions: FormQuestion[] = [];
+  let currentSectionDescription: string | null = null;
 
   containers.forEach((container) => {
+    // セクション説明かどうかをチェック
+    if (isSectionDescription(container)) {
+      const sectionText = extractSectionText(container);
+      if (sectionText.length > 0) {
+        currentSectionDescription = sectionText;
+      }
+      return; // セクション説明自体は質問リストには追加しない
+    }
+
     // 質問文を取得
     const questionText = extractQuestionText(container);
 
@@ -160,6 +211,7 @@ export function scrapeFormQuestions(): FormQuestion[] {
         choices,
         type: detectQuestionType(container),
         element: container,
+        sectionDescription: currentSectionDescription,
       });
     }
   });

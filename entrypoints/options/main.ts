@@ -1,13 +1,24 @@
 import './style.css';
-import { saveApiKey, getApiKey } from '@/utils/storage';
+import {
+  saveApiKey,
+  getApiKey,
+  saveModel,
+  getModel,
+  saveThinkingLevel,
+  getThinkingLevel,
+  DEFAULT_MODEL,
+  DEFAULT_THINKING_LEVEL
+} from '@/utils/storage';
 
 // ─── DOM要素の取得 ───
 const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+const modelSelect = document.getElementById('model-select') as HTMLSelectElement;
+const thinkingLevelSelect = document.getElementById('thinking-level-select') as HTMLSelectElement;
 const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
 const btnClear = document.getElementById('btn-clear') as HTMLButtonElement;
 const btnToggleVisibility = document.getElementById('btn-toggle-visibility') as HTMLButtonElement;
-const iconEye = document.getElementById('icon-eye') as SVGElement;
-const iconEyeOff = document.getElementById('icon-eye-off') as SVGElement;
+const iconEye = document.getElementById('icon-eye') as HTMLElement;
+const iconEyeOff = document.getElementById('icon-eye-off') as HTMLElement;
 const saveMessage = document.getElementById('save-message') as HTMLDivElement;
 
 // ─── メッセージ表示 ───
@@ -35,16 +46,19 @@ function toggleVisibility(): void {
 // ─── 保存処理 ───
 async function onSave(): Promise<void> {
   const apiKey = apiKeyInput.value.trim();
+  const model = modelSelect.value;
+  const thinkingLevel = thinkingLevelSelect.value;
 
   if (!apiKey) {
     showMessage('error', 'APIキーを入力してください。');
     return;
   }
 
-
   try {
     await saveApiKey(apiKey);
-    showMessage('success', '✓ APIキーを保存しました。');
+    await saveModel(model);
+    await saveThinkingLevel(thinkingLevel);
+    showMessage('success', '✓ 設定を保存しました。');
   } catch (error: any) {
     showMessage('error', `保存に失敗しました: ${error.message}`);
   }
@@ -53,9 +67,13 @@ async function onSave(): Promise<void> {
 // ─── クリア処理 ───
 async function onClear(): Promise<void> {
   apiKeyInput.value = '';
+  modelSelect.value = DEFAULT_MODEL;
+  thinkingLevelSelect.value = DEFAULT_THINKING_LEVEL;
   try {
     await saveApiKey('');
-    showMessage('success', 'APIキーをクリアしました。');
+    await saveModel(DEFAULT_MODEL);
+    await saveThinkingLevel(DEFAULT_THINKING_LEVEL);
+    showMessage('success', '設定を初期化しました。');
   } catch (error: any) {
     showMessage('error', `クリアに失敗しました: ${error.message}`);
   }
@@ -67,6 +85,12 @@ async function init(): Promise<void> {
   if (savedKey && savedKey.trim().length > 0) {
     apiKeyInput.value = savedKey;
   }
+
+  const savedModel = await getModel();
+  modelSelect.value = savedModel;
+
+  const savedThinkingLevel = await getThinkingLevel();
+  thinkingLevelSelect.value = savedThinkingLevel;
 }
 
 // ─── イベントリスナー ───
