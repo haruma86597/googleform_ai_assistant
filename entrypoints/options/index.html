@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="manifest.open_in_tab" content="true" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>設定 - GoogleForm AI Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,137 +32,259 @@
 
     <!-- メインコンテンツ -->
     <main class="options-main">
-      <!-- APIキー設定カード -->
-      <section class="card" id="api-key-section">
-        <div class="card-header">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path
-              d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-          </svg>
-          <h2>Gemini APIキー</h2>
-        </div>
-        <p class="card-description">
-          Google AI Studio からAPIキーを取得し、以下に入力してください。
-          APIキーはブラウザのローカルストレージに安全に保存されます。
-        </p>
-
-        <div class="input-group">
-          <label for="api-key-input">APIキー</label>
-          <div class="input-wrapper">
-            <input type="password" id="api-key-input" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" />
-            <button type="button" id="btn-toggle-visibility" class="btn-icon" title="表示/非表示を切替">
-              <svg id="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <svg id="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+      <div class="options-grid">
+        <!-- 左カラム：設定フォーム -->
+        <div class="options-column-left">
+          <!-- APIキー設定カード -->
+          <section class="card" id="api-key-section">
+            <div class="card-header">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path
-                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                <line x1="1" y1="1" x2="23" y2="23" />
+                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
               </svg>
-            </button>
-          </div>
+              <h2>Gemini API設定</h2>
+            </div>
+            <p class="card-description">
+              Google Gemini のAIモデルを使用して回答を生成します。
+              キーはブラウザのローカルストレージへ安全に保存されます。
+            </p>
+
+            <div class="input-group">
+              <label for="api-key-input">Gemini APIキー</label>
+              <div class="input-wrapper">
+                <input type="password" id="api-key-input" placeholder="" autocomplete="off" spellcheck="false" />
+                <button type="button" id="btn-toggle-visibility" class="btn-icon" title="表示/非表示を切替">
+                  <svg id="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg id="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+
+            <div class="input-group">
+              <label for="model-select">AIモデル</label>
+              <div class="input-wrapper">
+                <select id="model-select">
+                  <option value="gemini-3.5-flash">gemini-3.5-flash (高性能)</option>
+                  <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (推奨)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="thinking-level-select">思考レベル (Thinking Level)</label>
+              <div class="input-wrapper">
+                <select id="thinking-level-select">
+                  <option value="OFF">OFF (思考オフ — 高速応答)</option>
+                  <option value="LOW">LOW (低)</option>
+                  <option value="MEDIUM">MEDIUM (中 — 推奨)</option>
+                  <option value="HIGH">HIGH (高 — 複雑な問題)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="button" id="btn-save" class="btn-primary">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                保存
+              </button>
+              <button type="button" id="btn-clear" class="btn-secondary">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                クリア
+              </button>
+            </div>
+
+            <!-- 保存結果メッセージ -->
+            <div id="save-message" class="save-message hidden"></div>
+          </section>
         </div>
 
-        <div class="input-group">
-          <label for="model-select">AIモデル</label>
-          <div class="input-wrapper">
-            <select id="model-select">
-              <option value="gemini-3.5-flash">gemini-3.5-flash (推奨/標準)</option>
-              <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (軽量版)</option>
-            </select>
-          </div>
-        </div>
+        <!-- 右カラム：ガイド・ヘルプ -->
+        <div class="options-column-right">
+          <!-- APIキー取得ガイド -->
+          <section class="card" id="api-guide-section">
+            <div class="card-header">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <h2>APIキーの取得方法</h2>
+            </div>
 
-        <div class="input-group">
-          <label for="thinking-level-select">思考レベル (Thinking Level)</label>
-          <div class="input-wrapper">
-            <select id="thinking-level-select">
-              <option value="OFF">OFF (思考オフ — 高速応答)</option>
-              <option value="LOW">LOW (低)</option>
-              <option value="MEDIUM">MEDIUM (中 — 推奨)</option>
-              <option value="HIGH">HIGH (高 — 複雑な推論)</option>
-            </select>
-          </div>
-        </div>
+            <p class="card-description">
+              Gemini APIを利用するには無料のAPIキーが必要です。以下の手順に沿って取得してください。
+            </p>
 
-        <div class="button-group">
-          <button type="button" id="btn-save" class="btn-primary">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            保存
-          </button>
-          <button type="button" id="btn-clear" class="btn-secondary">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            クリア
-          </button>
-        </div>
+            <div class="step-guide">
+              <div class="step-item">
+                <div class="step-badge">1</div>
+                <div class="step-content">
+                  <h3>Google AI Studio にアクセス</h3>
+                  <p>
+                    下記のボタンからGoogle AI StudioのAPIキー管理画面を開きます。
+                  </p>
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
+                    class="btn-link-studio" id="link-aistudio">
+                    <span>Google AI Studio を開く</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
 
-        <!-- 保存結果メッセージ -->
-        <div id="save-message" class="save-message hidden"></div>
-      </section>
+              <div class="step-item">
+                <div class="step-badge">2</div>
+                <div class="step-content">
+                  <h3>「Create API key」をクリック</h3>
+                  <p>
+                    画面上部または左側にある青色の「<strong>Create API key</strong>」ボタンをクリックします。
+                  </p>
+                </div>
+              </div>
 
-      <!-- 使い方カード -->
-      <section class="card">
-        <div class="card-header">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-          <h2>使い方</h2>
-        </div>
-        <ol class="usage-steps">
-          <li>
-            <span class="step-number">1</span>
-            <span>上のフォームにGemini APIキーを入力して「保存」を押す</span>
-          </li>
-          <li>
-            <span class="step-number">2</span>
-            <span>Googleフォームの回答画面を開く</span>
-          </li>
-          <li>
-            <span class="step-number">3</span>
-            <span>拡張機能アイコンをクリックし「解答をハイライト」ボタンを押す</span>
-          </li>
-          <li>
-            <span class="step-number">4</span>
-            <span>正解の選択肢が薄い青色でハイライトされる</span>
-          </li>
-        </ol>
-      </section>
+              <div class="step-item">
+                <div class="step-badge">3</div>
+                <div class="step-content">
+                  <h3>新しいプロジェクトで作成</h3>
+                  <p>
+                    ポップアップ画面が開いたら、「<strong>Create API key in new project</strong>」を選択してキーを作成します。
+                  </p>
+                </div>
+              </div>
 
-      <!-- APIキー取得ガイド -->
-      <section class="card">
-        <div class="card-header">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-          </svg>
-          <h2>APIキーの取得方法</h2>
+              <div class="step-item">
+                <div class="step-badge">4</div>
+                <div class="step-content">
+                  <h3>キーをコピーして保存</h3>
+                  <p>
+                    生成されたキーをコピーし、左側の「Gemini APIキー」欄に貼り付け、「保存」を押します。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 使い方カード -->
+          <section class="card">
+            <div class="card-header">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <h2>拡張機能の使い方</h2>
+            </div>
+            <ol class="usage-steps">
+              <li>
+                <span class="step-number">1</span>
+                <span>APIキーを保存した状態にする</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span>Googleフォームの回答・問題画面を開く</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span>拡張機能アイコンをクリックし、「解答をハイライト」ボタンを押す</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span>AIが導き出した正解の選択肢が、自動で選択されます</span>
+              </li>
+            </ol>
+          </section>
+
+          <!-- 安全性と料金 (FAQ) -->
+          <section class="card" id="faq-section">
+            <div class="card-header">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <h2>安全性と料金について</h2>
+            </div>
+
+            <div class="faq-list">
+              <div class="faq-item">
+                <button type="button" class="faq-trigger">
+                  <span>料金はかかりますか？本当に無料ですか？</span>
+                  <svg class="faq-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div class="faq-content">
+                  <p>
+                    <strong>完全に無料で利用できます。</strong><br>
+                    Google AI Studioの無料枠（Free tier）を使用するため、クレジットカードの登録すら必要ありません。無料枠ではリクエスト制限（Gemini 3.5
+                    Flash-liteの場合、1分間に15リクエストまで等）がありますが、通常の個人利用の範囲であれば十分な上限です。有料プランへアップグレードしない限り、自動で請求が発生することはありません。
+                  </p>
+                </div>
+              </div>
+
+              <div class="faq-item">
+                <button type="button" class="faq-trigger">
+                  <span>APIキーのセキュリティ・安全性は？</span>
+                  <svg class="faq-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div class="faq-content">
+                  <p>
+                    入力されたキーは、<strong>利用者のブラウザ（拡張機能専用のローカルストレージ）にのみ保存されます。</strong><br>
+                    拡張機能の開発者を含め、外部の第三者サーバー等へキーが送信されることは絶対にありません。APIキーはGoogleフォームの問題を解析する目的で、GoogleのGemini
+                    APIエンドポイントと直接通信するためだけに利用されます。
+                  </p>
+                </div>
+              </div>
+
+              <div class="faq-item">
+                <button type="button" class="faq-trigger">
+                  <span>「API key not valid」エラーが出ます</span>
+                  <svg class="faq-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                <div class="faq-content">
+                  <p>
+                    貼り付けたキーの前後に余分なスペース（空白文字）や改行が入っていないか再度確認してください。キーは通常、<code>AIzaSy</code>
+                    から始まる39文字前後の英数字・記号で構成されています。また、新規作成したばかりのAPIキーは、世界中に反映され有効化されるまでに数分かかる場合があります。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-        <p class="card-description">
-          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" id="link-aistudio">
-            Google AI Studio
-          </a>
-          にアクセスし、「Create API key」ボタンからAPIキーを作成してください。
-          無料枠で十分に利用できます。
-        </p>
-      </section>
+      </div>
     </main>
   </div>
 

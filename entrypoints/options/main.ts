@@ -54,6 +54,11 @@ async function onSave(): Promise<void> {
     return;
   }
 
+  if (!apiKey.startsWith('AIzaSy')) {
+    showMessage('error', 'APIキーの形式が正しくありません。「AIzaSy」から始まるキーを入力してください。');
+    return;
+  }
+
   try {
     await saveApiKey(apiKey);
     await saveModel(model);
@@ -91,6 +96,22 @@ async function init(): Promise<void> {
 
   const savedThinkingLevel = await getThinkingLevel();
   thinkingLevelSelect.value = savedThinkingLevel;
+
+  // FAQ アコーディオン制御の初期化
+  const faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach((item) => {
+    const trigger = item.querySelector('.faq-trigger');
+    trigger?.addEventListener('click', () => {
+      // 他のすべてのFAQアイテムを閉じる（アコーディオン動作）
+      faqItems.forEach((otherItem) => {
+        if (otherItem !== item) {
+          otherItem.classList.remove('active');
+        }
+      });
+      // 対象アイテムの開閉を切り替える
+      item.classList.toggle('active');
+    });
+  });
 }
 
 // ─── イベントリスナー ───
