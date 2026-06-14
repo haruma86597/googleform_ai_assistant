@@ -135,7 +135,7 @@ export async function fetchAnswers(
     systemInstruction,
     temperature: 0.1,
     topP: 0.8,
-    maxOutputTokens: 2048,
+    maxOutputTokens: 20480,
   };
 
   if (thinkingLevel && thinkingLevel !== 'OFF') {
