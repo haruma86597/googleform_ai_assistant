@@ -4,6 +4,7 @@
  */
 
 const STORAGE_KEY_API_KEY = 'gemini_api_key';
+const STORAGE_KEY_DEEPSEEK_API_KEY = 'deepseek_api_key';
 const STORAGE_KEY_MODEL = 'gemini_model';
 const STORAGE_KEY_THINKING_LEVEL = 'gemini_thinking_level';
 
@@ -26,12 +27,33 @@ export async function getApiKey(): Promise<string | null> {
 }
 
 /**
+ * DeepSeek APIキーを chrome.storage.local に保存する
+ */
+export async function saveDeepSeekApiKey(apiKey: string): Promise<void> {
+  await storage.setItem<string>(`local:${STORAGE_KEY_DEEPSEEK_API_KEY}`, apiKey);
+}
+
+/**
+ * chrome.storage.local から DeepSeek APIキーを取得する
+ */
+export async function getDeepSeekApiKey(): Promise<string | null> {
+  const key = await storage.getItem<string>(`local:${STORAGE_KEY_DEEPSEEK_API_KEY}`);
+  return key ?? null;
+}
+
+/**
  * APIキーが設定済みかを確認する
  */
 export async function hasApiKey(): Promise<boolean> {
+  const model = await getModel();
+  if (model === 'deepseek-v4-flash') {
+    const key = await getDeepSeekApiKey();
+    return key !== null && key.trim().length > 0;
+  }
   const key = await getApiKey();
   return key !== null && key.trim().length > 0;
 }
+
 
 /**
  * モデル名を保存する
