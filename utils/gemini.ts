@@ -52,22 +52,40 @@ function buildPrompt(questions: QuestionInput[]): string {
 }
 
 /**
+ * APIレスポンス用のJSONスキーマ定義（構造化出力用）
+ */
+const ANSWER_RESPONSE_SCHEMA = {
+  type: 'ARRAY',
+  description: '各問題に対する正解の選択肢リスト',
+  items: {
+    type: 'OBJECT',
+    properties: {
+      questionIndex: {
+        type: 'INTEGER',
+        description: '質問のインデックス（0始まり）'
+      },
+      answers: {
+        type: 'ARRAY',
+        items: {
+          type: 'STRING'
+        },
+        description: '正解の選択肢テキストの配列。複数選択問題の場合は複数、単一選択の場合は1つ含める。'
+      }
+    },
+    required: ['questionIndex', 'answers']
+  }
+};
+
+/**
  * システム指示を構築する
  */
 function buildSystemInstruction(): string {
   return `あなたは試験問題の正解を判定するアシスタントです。
 以下のルールを厳守してください：
 
-1. 解説や説明は一切不要です。
-2. 各問題に対して、正解の選択肢の「テキスト」のみを返してください。
-3. 選択肢のテキストは、入力された選択肢と完全に一致する文字列で返してください。記号（A. B.等）は含めないでください。
-4. 回答は以下のJSON形式で返してください：
-[
-  { "questionIndex": 0, "answers": ["正解の選択肢テキスト"] },
-  { "questionIndex": 1, "answers": ["正解1", "正解2"] }
-]
-5. 複数選択問題の場合は、正解と思われる選択肢をすべて配列に含めてください。
-6. JSON以外のテキストは一切出力しないでください。`;
+1. 各問題に対して、正解の選択肢の「テキスト」のみを選択してください。
+2. 選択肢のテキストは、入力された選択肢と完全に一致する文字列で指定してください。記号（A. B.等）は含めないでください。
+3. 複数選択問題の場合は、正解と思われる選択肢をすべて配列に含めてください。`;
 }
 
 /**
@@ -136,6 +154,8 @@ export async function fetchAnswers(
     temperature: 0.1,
     topP: 0.8,
     maxOutputTokens: 20480,
+    responseMimeType: 'application/json',
+    responseJsonSchema: ANSWER_RESPONSE_SCHEMA,
   };
 
   if (thinkingLevel && thinkingLevel !== 'OFF') {
@@ -167,16 +187,69 @@ export async function fetchAnswers(
 
     return parseAnswers(responseText, questions);
   } catch (error: any) {
-    // SDK のエラーをわかりやすいメッセージに変換
-    if (error.message?.includes('API key')) {
+    // エラーからステータスコードやステータス文字列を抽出
+    const statusCode = error.status || error.statusCode || error.code;
+    const statusText = error.statusText || '';
+    const message = error.message || '';
+
+    // トラブルシューティングガイドのエラーコードに基づくハンドリング
+    // 400 INVALID_ARGUMENT または FAILED_PRECONDITION
+    if (statusCode === 400 || message.includes('400') || statusText.includes('INVALID_ARGUMENT') || message.includes('INVALID_ARGUMENT') || statusText.includes('FAILED_PRECONDITION') || message.includes('FAILED_PRECONDITION')) {
+      if (message.includes('API key') || message.includes('ApiKey') || message.includes('API_KEY')) {
+        throw new Error('APIキーが無効です。設定画面で正しいキーを入力してください。');
+      }
+      if (message.includes('billing') || message.includes('free tier') || message.includes('FAILED_PRECONDITION') || statusText.includes('FAILED_PRECONDITION')) {
+        throw new Error('Gemini API の無料枠がお住まいの国で利用できないか、Google AI Studio で課金設定がされていません。Google AI Studio で課金プランを設定してください。');
+      }
+      throw new Error('APIリクエストのパラメータ（温度やトークン数等）またはプロンプトの設定が無効です。設定を確認してください。');
+    }
+
+    // 403 PERMISSION_DENIED
+    if (statusCode === 403 || message.includes('403') || statusText.includes('PERMISSION_DENIED') || message.includes('PERMISSION_DENIED')) {
+      throw new Error('APIキーが無効であるか、必要な権限がありません。設定画面で正しいAPIキーを入力してください。');
+    }
+
+    // 404 NOT_FOUND
+    if (statusCode === 404 || message.includes('404') || statusText.includes('NOT_FOUND') || message.includes('NOT_FOUND')) {
+      throw new Error(`指定されたモデル "${model}" またはリソースが見つかりませんでした。モデル名が正しいか確認してください。`);
+    }
+
+    // 429 RESOURCE_EXHAUSTED
+    if (statusCode === 429 || message.includes('429') || statusText.includes('RESOURCE_EXHAUSTED') || message.includes('RESOURCE_EXHAUSTED') || message.includes('quota')) {
+      throw new Error('APIの利用制限（レートリミット）に達しました。しばらく待ってから再試行するか、有料プランへの移行をご検討ください。');
+    }
+
+    // 499 CANCELLED
+    if (statusCode === 499 || message.includes('499') || statusText.includes('CANCELLED') || message.includes('CANCELLED')) {
+      throw new Error('リクエストがキャンセルされました。クライアント側やネットワークのタイムアウトによるものか確認してください。');
+    }
+
+    // 500 INTERNAL
+    if (statusCode === 500 || message.includes('500') || statusText.includes('INTERNAL') || message.includes('INTERNAL')) {
+      throw new Error('Google側で予期しない内部エラーが発生しました。入力コンテキスト（質問数）を減らすか、別のモデルに変更してお試しください。');
+    }
+
+    // 503 UNAVAILABLE
+    if (statusCode === 503 || message.includes('503') || statusText.includes('UNAVAILABLE') || message.includes('UNAVAILABLE')) {
+      throw new Error('Gemini API サービスが一時的に過負荷、またはダウンしています。別のモデルに変更するか、しばらく時間をおいてから再試行してください。');
+    }
+
+    // 504 DEADLINE_EXCEEDED
+    if (statusCode === 504 || message.includes('504') || statusText.includes('DEADLINE_EXCEEDED') || message.includes('DEADLINE_EXCEEDED')) {
+      throw new Error('処理が時間内に完了しませんでした（タイムアウト）。プロンプト（質問数）を減らすか、しばらく待ってからお試しください。');
+    }
+
+    // 一般的なフォールバック判定
+    if (message.includes('API key') || message.includes('ApiKey')) {
       throw new Error('APIキーが無効です。設定画面で正しいキーを入力してください。');
     }
-    if (error.message?.includes('quota') || error.message?.includes('429')) {
+    if (message.includes('quota') || message.includes('limit')) {
       throw new Error('APIの利用制限に達しました。しばらく待ってから再試行してください。');
     }
-    if (error.message?.includes('model')) {
-      throw new Error(`モデル "${model}" が利用できません: ${error.message}`);
+    if (message.includes('model')) {
+      throw new Error(`モデル "${model}" が利用できません: ${message}`);
     }
-    throw new Error(`Gemini API エラー: ${error.message}`);
+
+    throw new Error(`Gemini API エラー: ${message}`);
   }
 }
